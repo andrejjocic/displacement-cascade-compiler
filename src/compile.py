@@ -343,7 +343,7 @@ class DSDCircuit:
         self.update_metadata("migration_sequence_lengths", [sum(dom.length for dom in mod.branch_migration_strand(0)) for mod in modules])
 
 
-    def formal_CRN(self, include_supporting_species: bool, decompose_cycles: bool) -> Generator[FormalReaction, None, None]:
+    def formal_CRN(self, include_supporting_species: bool, decompose_cycles: bool = False) -> Generator[FormalReaction, None, None]:
         for module in self._modules:
             for fr in module.formal_reactions(decompose_cycles=decompose_cycles):
                 if not include_supporting_species:

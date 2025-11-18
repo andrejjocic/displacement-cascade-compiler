@@ -1,0 +1,8 @@
+# {"cooperative_toehold": ["T0", "s"], "max_toehold_length": 7, "migration_sequence_lengths": [15], "inputs": ["C0", "C1"], "outputs": ["C0", "C1"], "recognition_domain_lengths": {"c": 15}, "standard_conc": [100.0, "nM"]}
+length T0	= 5
+length c0	= 15
+length c1	= 15
+length s	= 2
+Annihilator_0_1	= s* T0* c0*( c1( + s* T0* ) )	@initial 200.0 nM
+C0	= c0 T0 s	@initial 628.3185307179587 nM
+C1	= c1 T0 s	@initial 628.3185307179587 nM

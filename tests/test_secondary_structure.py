@@ -1,7 +1,7 @@
 import unittest
 from dsdobjects import DomainS, ComplexS
+
 import sys
-import os
 import hashlib
 import random
 import string

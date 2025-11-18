@@ -1,3 +1,9 @@
-dsdobjects
+dsdobjects == 0.8 # library is expected to evolve further, potentially breaking backward compatibility 
 peppercornenumerator
-crnverifier
+git+https://github.com/DNA-and-Natural-Algorithms-Group/crnverifier.git # TODO: move to optional reqs
+
+numpy
+pandas
+matplotlib
+
+notebook # TODO: move to optional reqs

@@ -2,7 +2,6 @@ from dsdobjects import ComplexS, DomainS
 from dsdobjects.objectio import read_pil, set_io_objects
 
 from typing import List, Dict, Any
-import networkx as nx
 import itertools
 import json
 from collections import Counter
@@ -187,31 +186,3 @@ class SecondaryStructure:
     @staticmethod
     def from_kernel_notation(kern: str) -> 'SecondaryStructure':
         raise NotImplementedError("TODO")
-
-
-
-
-def bipartite_CRN_graph(pil_data: Dict) -> nx.DiGraph:
-    """convert PIL data to a bipartite graph representation of the CRN (species/macrostate and reaction nodes)"""
-    detailed_crn = bool(pil_data["det_reactions"])
-    graph = nx.DiGraph()
-
-    if detailed_crn:
-        rxns = pil_data["det_reactions"]
-        # ReactionS, MacrostateS and ComplexS are hashable, no need to convert to str
-        graph.add_nodes_from(pil_data["complexes"])
-    else:
-        rxns = pil_data["con_reactions"]
-        graph.add_nodes_from(pil_data["macrostates"])
-
-    for rxn in rxns:
-        graph.add_node(rxn, is_reaction=True) 
-
-        for reactant in rxn.reactants: 
-            graph.add_edge(reactant, rxn)
-
-        for product in rxn.products:
-            graph.add_edge(rxn, product)
-
-    return graph
-

@@ -1,0 +1,19 @@
+# {"cooperative_toehold": ["T0", "s"], "max_toehold_length": 10, "migration_sequence_lengths": [15, 15, 15], "inputs": ["C0", "C1"], "outputs": ["Quencher_0", "Quencher_1"], "recognition_domain_lengths": {"c": 15, "bo": 15}, "standard_conc": [50, "nM"]}
+length T0	= 5
+length T1	= 5
+length bo0	= 15
+length bo1	= 15
+length c0	= 15
+length c1	= 15
+length s	= 5
+Annihilator_0_1	= s* T0* c0*( c1( + s* T0* ) )	@initial 75.0 nM
+RestorationGate_0	= T0* c0*( T1*( + bo0 ) )	@initial 50.0 nM
+RestorationFuel_0	= T1 c0	@initial 100.0 nM
+RestorationGate_1	= T0* c1*( T1*( + bo1 ) )	@initial 50.0 nM
+RestorationFuel_1	= T1 c1	@initial 100.0 nM
+Reporter_0	= T1* bo0*( + )	@initial 100.0 nM
+Reporter_1	= T1* bo1*( + )	@initial 100.0 nM
+C0	= c0 T0 s	@initial 314.1592653589793 nM
+C1	= c1 T0 s	@initial 314.1592653589793 nM
+Quencher_0	= bo0	@initial 0 nM
+Quencher_1	= bo1	@initial 0 nM

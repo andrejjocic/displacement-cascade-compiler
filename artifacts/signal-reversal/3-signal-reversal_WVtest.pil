@@ -1,0 +1,25 @@
+# {"migration_sequence_lengths": [22], "inputs": ["X0", "X1", "X2"], "recognition_domain_lengths": {"Y": 15, "X": 15}, "standard_conc": [100.0, "nM"], "max_toehold_length": 5}
+length T0	= 5
+length T1	= 5
+length X0	= 15
+length X1	= 15
+length X2	= 15
+length Y0	= 15
+length Y1	= 15
+length Y2	= 15
+length s	= 2
+ReversalGate_0_1	= T0* X0*( s*( T1*( + Y1 ) ) )	@initial 200.0 nM
+ReversalGate_0_2	= T0* X0*( s*( T1*( + Y2 ) ) )	@initial 200.0 nM
+ReversalGate_1_0	= T0* X1*( s*( T1*( + Y0 ) ) )	@initial 200.0 nM
+ReversalGate_1_2	= T0* X1*( s*( T1*( + Y2 ) ) )	@initial 200.0 nM
+ReversalGate_2_0	= T0* X2*( s*( T1*( + Y0 ) ) )	@initial 200.0 nM
+ReversalGate_2_1	= T0* X2*( s*( T1*( + Y1 ) ) )	@initial 200.0 nM
+X0	= T1 s X0 T0	@initial 628.3185307179587 nM
+X1	= T1 s X1 T0	@initial 628.3185307179587 nM
+X2	= T1 s X2 T0	@initial 628.3185307179587 nM
+Y0_from_X1	= Y0 T1 s X1	@initial 0.0 nM
+Y0_from_X2	= Y0 T1 s X2	@initial 0.0 nM
+Y1_from_X0	= Y1 T1 s X0	@initial 0.0 nM
+Y1_from_X2	= Y1 T1 s X2	@initial 0.0 nM
+Y2_from_X0	= Y2 T1 s X0	@initial 0.0 nM
+Y2_from_X1	= Y2 T1 s X1	@initial 0.0 nM
