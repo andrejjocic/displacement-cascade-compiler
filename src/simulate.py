@@ -86,9 +86,9 @@ def add_simulation_and_plotting_args(parser):
     sim_group.add_argument("--input-csv", type=str, help="Path to a CSV file containing input vectors (optional).")
     
     sim_group.add_argument("--duration", type=float, default=2, 
-                      help="Final time for simulation (given time units). Default is 2 hours.")
-    sim_group.add_argument("--duration-unit", choices=["seconds", "hours"], default="hours",
-                      help="Unit for the simulation duration: 'seconds' or 'hours' (default: hours)")
+                      help="Final time for simulation (hours). Default is 2 hours.")
+    # sim_group.add_argument("--duration-unit", choices=["seconds", "hours"], default="hours",
+                    #   help="Unit for the simulation duration: 'seconds' or 'hours' (default: hours)")
     
     sim_group.add_argument("--timepoints", type=int, default=500,
                       help="Number of timepoints to be interpolated from ODE solution")
@@ -158,6 +158,7 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
                         duration: float = 2.5, duration_unit="hours", timepoints=500,
                         species_remap: dict[str, str] = None,
                         label_final: bool = True,
+                        slovene_labels: bool = False,
                         plot_kwargs={}):
     """Plot output signals from a CRN defined in a .pil file.
     
@@ -243,9 +244,19 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
         if duration_unit == "hours":
             times /= SECONDS_PER_HOUR
 
+        if slovene_labels:
+            if species_remap is None:
+                species_remap = {}
+
+            for i, name in enumerate(output_names):
+                if name.startswith("Quencher_"):
+                    idx = int(name.split("_")[1])
+                    species_remap[name] = f"Izhod {idx}"
+                    logger.info(f"Remapping species '{name}' to '{species_remap[name]}' for Slovene labels")
+
         plot_simulation_trajectories(ax, times, trajectories, species_names, output_names, 
                                      standard_conc=standard_conc, species_remap=species_remap,
-                                     label_final=label_final, **plot_kwargs)
+                                     label_final=label_final, slovene_labels=slovene_labels, **plot_kwargs)
         return trajectory_dataframe(times, trajectories, species_names, duration_unit)
         
     except Exception as e:
@@ -254,7 +265,8 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
 
 def plot_simulation_trajectories(ax: plt.Axes, time_points: np.ndarray, trajectories: np.ndarray,
                                  all_names: list[str], output_names: list[str], standard_conc: float,
-                                 species_remap: dict[str, str] = None, label_final=True, **plot_kwargs): 
+                                 species_remap: dict[str, str] = None, label_final=True, slovene_labels=False,
+                                 **plot_kwargs): 
 
     traj_indices = [all_names.index(name) for name in output_names]
     rel_trajectories = trajectories[:, traj_indices] / standard_conc
@@ -271,7 +283,7 @@ def plot_simulation_trajectories(ax: plt.Axes, time_points: np.ndarray, trajecto
 
         lab = name
         if label_final:
-            lab += f" (na koncu: {rel_trajectories[-1,i]:.2f})"
+            lab += f" ({'na koncu' if slovene_labels else 'final'}: {rel_trajectories[-1,i]:.2f})"
         ax.plot(time_points, rel_trajectories[:, i], label=lab, **plot_kwargs)
 
 
@@ -345,6 +357,8 @@ if __name__ == "__main__":
                         help="Force recompilation of the ODE system even if it exists")
     parser.add_argument("--save-data", action="store_true", 
                         help="Save simulation data to CSV file with metadata")
+    parser.add_argument("--slovene-labels", action="store_true", help="Use Slovene labels on plot")
+    parser.add_argument("--save-pdf", type=str, help="Path to save the plot as PDF (optional)")
     add_simulation_and_plotting_args(parser)
 
     args = parser.parse_args()
@@ -368,14 +382,28 @@ if __name__ == "__main__":
     #assert type(args.input_signal) is list and len(args.input_signal) > 0
     if args.input_signal is None or len(args.input_signal) == 0:
         raise ValueError("Input signal must be provided via --input-signal/-i")
-
+    
     ax = plt.gca()
     plot_output_signals(
         pil_path=args.crn_file,
         ax=ax,
         input_vector=get_input_vector(args, normalise=False),
         duration=args.duration,
-        duration_unit=args.duration_unit,
-        timepoints=args.timepoints
+        # duration_unit=args.duration_unit,
+        timepoints=args.timepoints,
+        slovene_labels=args.slovene_labels,
     )
-    plt.show()
+    if args.slovene_labels:
+        ax.set_xlabel("Čas (ure)")
+        ax.set_ylabel("Relativna koncentracija")
+    else:
+        ax.set_xlabel("Time (hours)")
+        ax.set_ylabel("Relative Concentration")
+    
+    plt.legend()
+
+    if args.save_pdf is None:
+        plt.show()
+    else:
+        plt.savefig(args.save_pdf, bbox_inches='tight')
+        logger.info(f"Plot saved to {args.save_pdf}")

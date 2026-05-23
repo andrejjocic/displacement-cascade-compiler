@@ -1,5 +1,9 @@
+
+notebooks/test.ipynb
+
 # enumerated CRNs
 artifacts/**/*ENUM*.pil
+artifacts/**/*odesys*.py
 
 # simulation generated
 artifacts/**/*.csv

@@ -52,6 +52,28 @@ class FormalReaction:
         new_reactants = [s for s in self.reactants if not exclude_condition(s)]
         new_products = [s for s in self.products if not exclude_condition(s)]
         return FormalReaction(new_reactants, new_products)
+    
+
+@dataclass
+class Reaction:
+    reactants: List[str]
+    products: List[str]
+    forward_rate: float
+    """forward rate constant, Molar-based unit"""
+    reverse_rate: Optional[float] = None
+    """reverse rate constant, Molar-based unit. If None, reaction is irreversible."""
+
+    @property
+    def reversible(self) -> bool:
+        return self.reverse_rate is not None
+    
+    def crnsimulator_format(self, cvt2nanomol=True) -> str: # usually want to specify initials in nM
+        kf = self.forward_rate * 1e-9 if cvt2nanomol else self.forward_rate
+        if not self.reversible:
+            return f"{' + '.join(self.reactants)} -> {' + '.join(self.products)} [k = {kf}]"
+        else:
+            kr = self.reverse_rate * 1e-9 if cvt2nanomol else self.reverse_rate
+            return f"{' + '.join(self.reactants)} <=> {' + '.join(self.products)} [kf = {kf}, kr = {kr}]"
 
 
 @dataclass
@@ -378,6 +400,11 @@ class DSDCircuit:
         return interp
 
 
+    def print_approximate_CRN(self):
+        for module in self._modules:
+            for r in module.approximate_reactions():
+                print(r.crnsimulator_format())
+
 
     def export_PIL(self, standard_conc: float = 100.0, conc_unit: str = "nM", output_file: Optional[str] = None,
                    placeholder_conc: float = math.tau, metadata: dict = {}, skip_metadata: bool = False,
@@ -574,6 +601,12 @@ class CircuitModule(ABC):
     @abstractmethod
     def formal_reactions(self, decompose_cycles: bool = False) -> Generator[FormalReaction, None, None]:
         """Yield formal reactions corresponding to this module."""
+        pass
+
+    def approximate_reactions(self) -> Generator[Reaction, None, None]:
+        """Reactions used to approximate the implementation CRN. 
+        Rate constants based on experimental measurements.
+        (see LTA paper supplemental)"""
         pass
 
 
@@ -859,6 +892,20 @@ class PairwiseAnnihilation(CircuitModule):
                 reactants=[self.input.formal_name(i), self.input.formal_name(j), self.anh_name(i, j)],
                 products=[]
             )
+
+    def approximate_reactions(self) -> Generator[Reaction, None, None]:
+        kf = 2e6 # /M/s
+        kb = 1 # /s
+        kr = 0.08 # /s
+
+        for i, j in itertools.combinations(range(self.input.dim), 2):
+            anh = self.anh_name(i, j)
+            yield Reaction([self.input.formal_name(i), anh], [f"Anh{i}__{i}_{j}"], kf, kr)
+            yield Reaction([self.input.formal_name(j), anh], [f"Anh{i}_{j}__{j}"], kf, kr)
+            yield Reaction([self.input.formal_name(i), f"Anh{i}_{j}__{j}"], [f"Anh{i}__{i}_{j}__{j}"], kf, kr)
+            yield Reaction([self.input.formal_name(j), f"Anh{i}__{i}_{j}"], [f"Anh{i}__{i}_{j}__{j}"], kf, kr)
+            yield Reaction([f"Anh{i}__{i}_{j}__{j}"], ["waste"], kb)
+
     
     def compile(self):
         t = self.input.toehold
@@ -926,6 +973,12 @@ class SignalRestoration(CircuitModule):
                     products=[self.input.formal_name(i)]
                 )
 
+    def approximate_reactions(self) -> Generator[Reaction, None, None]:
+        ks = 1e5 # /M/s
+        for i in range(self.input.dim):
+            yield Reaction([self.input.formal_name(i), self.gate_name(i)], [f"YG_{i}", self.output.formal_name(i)], ks, ks) # cycle forward
+            yield Reaction([f"YG_{i}", self.fuel_name(i)], [self.input.formal_name(i), f"GF_{i}"], ks, ks) # cycle reverse
+
 
     def compile(self):
         ti, to = self.seesaw_toeholds
@@ -972,6 +1025,12 @@ class Reporting(CircuitModule):
                 reactants=[self.input.formal_name(i), self.gate_name(i)],
                 products=[f"Fluor_{i}"]
             )
+
+    def approximate_reactions(self) -> Generator[Reaction, None, None]:
+        krep = 1e5 # /M/s
+        for i in range(self.input.dim):
+            yield Reaction([self.input.formal_name(i), self.gate_name(i)], [f"Fluor_{i}"], krep)
+
 
     def compile(self):
         for i in range(self.input.dim):

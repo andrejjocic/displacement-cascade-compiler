@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 Run `python src/compile.py` to assemble the DSD system implementing a WTA[^1] or LTA[^2] classification circuit. See [circuit_assembly.ipynb](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/notebooks/circuit_assembly.ipynb) for compiling arbitrary cascades of molecular signal processing operations. Currently, only operations from the above classifiers are implemented (based on seesaw gates and cooperative hybridization).
 
-Run `python src/enumerate.py` to enumerate reactions in the DSD system and  `python src/simulate.py` simulate them.
+Run `python src/enumerate.py` to enumerate reactions in the DSD system and  `python src/simulate.py` to simulate them.
 
 See [formal_verification.ipynb](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/notebooks/formal_verification.ipynb) for formally verifying circuit implementations using bisimulation[^3].
 
