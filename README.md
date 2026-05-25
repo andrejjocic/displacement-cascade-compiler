@@ -34,20 +34,20 @@ circ.add_modules(cascade, add_reporting=False)
 
 It starts by declaring $N$-dimensional input and output `Signal`s. The instance `competitor` is essentially a generator of domains $c_i$ ($0 \leq i < n$). By default, every signal gets its own toehold domain, which reduces the runtime of [enumeration](#reaction-enumeration-and-simulation). You can toggle this at any point with `circ.disable_toehold_generation` and `circ.enable_toehold_generation` if you wish to benchmark the increased effects of toehold occlusion that come with using a global/shared toehold.
 
-Then, the circuit topology is defined as a list of `CircuitModule`s. The compiler assumes that the input signal of the first module in the list is the actual circuit input (which will be set during [simulation](#reaction-enumeration-and-simulation)). Note that in this example, two modules share that input signal. By default, a `Reporting` module for the output of the last module in the list is added to the circuit implicitly (explicit in above example). Reporting is recommended for interpretable results, as output signals may oscillate without it. Aside from the first and last, the order of modules in the list is irrelevant. The data flow topology is defined by connecting modules with `Signal`s.
-See [circuit_assembly.ipynb](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/notebooks/circuit_assembly.ipynb) for more examples of cascading operations. 
+Then, the circuit topology is defined as a list of `CircuitModule`s. Aside from the first and last, the order of modules in the list is irrelevant: the data flow topology is defined by connecting modules with `Signal`s. The compiler assumes that the input signal of the *first* module in the list is the actual circuit input (which will be set during [simulation](#reaction-enumeration-and-simulation)). Note that in this example, two modules share that input signal. By default, a `Reporting` module for the output of the *last* module in the list is added to the circuit implicitly (explicit in above example). Reporting is recommended for interpretable results, as output signals may oscillate without it. It also avoids the issue where one formal species is represented by multiple actual species (with differing "history domains"[^5]). Plotting simulation outputs for such cases is currently not implemented.
 
+See [circuit_assembly.ipynb](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/notebooks/circuit_assembly.ipynb) for more examples of cascading operations. 
 Currently, only the operations described in papers [^1] and [^2] are implemented. The specification of supporting species (output of translation scheme) is summarized in the table below.
 
 | Module (operation) | Species | Kernel notation | Initial Relative Concentration |
 |---|---|---|---|
 | weight multiplication; matrix $W \in \mathbb{R}^{n\times m}$ | $W_{ij}$, $i \in [1,n]$, $j \in [1,m]$ | $y_j \text{ } t_y( \text{ } x_i( \text{ } + \text{ } t_x^{\ast} \text{ } ) \text{ } )$ | $w_{ij}$ |
-| ↳ | fuel $XF_{i}$, $i \in [1, n]$ | $t_y \text{ } x_i$ | $\geq \sum_j w_{ij}$ |
+| ↳ multiplication fuel | $XF_{i}$, $i \in [1, n]$ | $t_y \text{ } x_i$ | $\geq \sum_j w_{ij}$ |
 | summation (WTA) | $SG_{i}$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $\geq 1$ |
 | simultaneous summation and signal reversal (LTA) | $SRG_{ij}$, $i,j \in [1,m]$, $i \neq j$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_j \text{ } ) \text{ } )$ | $\geq \frac{1}{m-1}$ |
 | pairwise annihilation | $Anh_{jk}$, $1 \leq i < j \leq m$ | $t_e^{\ast} \text{ } t_x^{\ast} \text{ } x_j^{\ast}( \text{ } x_k( \text{ } + \text{ } t_e^{\ast} \text{ } t_x^{\ast} \text{ } ) \text{ } )$ | $\geq 1$ |
 | signal restoration | $RG_i$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $1$ |
-| ↳ | fuel $F_i$, $i \in [1,m]$ | $t_y \text{ } x_i$ | $\geq 1$ |
+| ↳ restoration fuel | $F_i$, $i \in [1,m]$ | $t_y \text{ } x_i$ | $\geq 1$ |
 | reporting | $Rep_{i}$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } + \text{ } )$ | $\geq 1$ |
 
 Secondary structures given in [kernel notation](https://github.com/DNA-and-Natural-Algorithms-Group/peppercornenumerator). All species are at most 2-stranded, so their strands can be written in any order[^4].

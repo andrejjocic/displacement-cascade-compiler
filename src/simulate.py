@@ -1,3 +1,7 @@
+"""
+Compile enumerated CRN to ODE system and simulate it using pilsimulator.
+"""
+
 import argparse
 import subprocess
 import numpy as np
@@ -209,6 +213,7 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
 
     species_names_set = set(species_names) 
 
+    # override the arbitrary non-zero concentration that inputs were set to before enumeration
     for inp, rel_conc in zip(input_names, input_vector):
         if inp not in species_names_set:
             logger.info(f"Input species '{inp}' not found in CRN. Skipping.") # can happen for sparse matrices
@@ -244,15 +249,17 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
         if duration_unit == "hours":
             times /= SECONDS_PER_HOUR
 
-        if slovene_labels:
-            if species_remap is None:
-                species_remap = {}
+        if species_remap is None:
+            species_remap = {}
 
-            for i, name in enumerate(output_names):
-                if name.startswith("Quencher_"):
-                    idx = int(name.split("_")[1])
-                    species_remap[name] = f"Izhod {idx}"
-                    logger.info(f"Remapping species '{name}' to '{species_remap[name]}' for Slovene labels")
+        # We plot the reporting products with the quencher instead of the fluorescent ones
+        # just to avoid history domain pattern matching. But concentrations of these species are the same, 
+        # so it doesn't affect the results.
+        for i, name in enumerate(output_names):
+            if name.startswith("Quencher_"):
+                idx = int(name.split("_")[1])
+                species_remap[name] = f"{'Izhod' if slovene_labels else 'Output'} {idx}"
+                logger.info(f"Remapping species '{name}' to '{species_remap[name]}' for plotting")
 
         plot_simulation_trajectories(ax, times, trajectories, species_names, output_names, 
                                      standard_conc=standard_conc, species_remap=species_remap,

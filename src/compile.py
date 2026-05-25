@@ -78,7 +78,11 @@ class Reaction:
 
 @dataclass
 class Signal:
-    """n-dimensional signal (set of n signal species that play similar role in the circuit)"""
+    """N-dimensional signal. Represent set of N signal species that play similar role in the circuit.
+    Note that the "signal strands" in seesaw circuits [Qian&Winfree 2011, A simple DNA gate motif]
+    contain 2 recognition domains each, whereas a `Signal` effectively encodes only the 
+    "free signal domain" on the 5' end and ignores the "history domain" (if any) on the 3' end.
+    """
     recognition_domain_prefix: str
     """name prefix for all recognition domains"""
     recognition_domain_length: int
@@ -86,8 +90,10 @@ class Signal:
     dim: int
     """dimension (number of formal species)"""
     toehold: DomainS 
-    """toehold whose binding initiates branch migration over the recognition domains
-    (in the course of standard signal propagation; excluding fuel binding in catalytic cycles)"""
+    """Toehold whose binding initiates branch migration over the recognition domains of this signal
+    in the course of forward-propagation of signals. An exception are catalytic cycles
+    like signal restoration, where this toehold on a *fuel* initiates migration over the recognition 
+    domains of the *previous* signal in the cascade (in the second step of a cycle)."""
 
     # TODO: history domain pattern matching
 
@@ -125,7 +131,7 @@ class Signal:
         return hash(self.recognition_domain_prefix)
 
 
-TH_EXT_NAME = "s"
+TH_EXT_NAME = "s" # TODO: use me everywhere instead of hardcoding "s" 
 """name of the toehold extension domain used in cooperative toehold design"""
 
 class DSDCircuit:

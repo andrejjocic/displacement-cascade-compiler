@@ -1,4 +1,7 @@
-"""Enumerate reactions Peppercorn, set timescale separation for cooperative hybridization"""
+"""
+Enumerate reactions Peppercorn, set timescale separation for cooperative hybridization
+"""
+
 import os
 import time
 import sys
