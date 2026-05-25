@@ -41,14 +41,14 @@ Currently, only the operations described in papers [^1] and [^2] are implemented
 
 | Module (operation) | Species | Kernel notation | Initial Relative Concentration |
 |---|---|---|---|
-| weight multiplication; matrix $W \in \mathbb{R}^{n\times m}$ | $W_{ij}$, $i \in [1,n]$, $j \in [1,m]$ | $y_j \text{ } t_y( \text{ } x_i( \text{ } + \text{ } t_x^* \text{ } ) \text{ } )$ | $w_{ij}$ |
+| weight multiplication; matrix $W \in \mathbb{R}^{n\times m}$ | $W_{ij}$, $i \in [1,n]$, $j \in [1,m]$ | $y_j \text{ } t_y( \text{ } x_i( \text{ } + \text{ } t_x^{\ast} \text{ } ) \text{ } )$ | $w_{ij}$ |
 | ↳ | fuel $XF_{i}$, $i \in [1, n]$ | $t_y \text{ } x_i$ | $\geq \sum_j w_{ij}$ |
-| summation (WTA) | $SG_{i}$, $i \in [1,m]$ | $t_x^* \text{ } x_i^*( \text{ } t_y^*( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $\geq 1$ |
-| simultaneous summation and signal reversal (LTA) | $SRG_{ij}$, $i,j \in [1,m]$, $i \neq j$ | $t_x^* \text{ } x_i^*( \text{ } t_y^*( \text{ } + \text{ } y_j \text{ } ) \text{ } )$ | $\geq \frac{1}{m-1}$ |
-| pairwise annihilation | $Anh_{jk}$, $1 \leq i < j \leq m$ | $t_e^* \text{ } t_x^* \text{ } x_j^*( \text{ } x_k( \text{ } + \text{ } t_e^* \text{ } t_x^* \text{ } ) \text{ } )$ | $\geq 1$ |
-| signal restoration | $RG_i$, $i \in [1,m]$ | $t_x^* \text{ } x_i^*( \text{ } t_y^*( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $1$ |
+| summation (WTA) | $SG_{i}$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $\geq 1$ |
+| simultaneous summation and signal reversal (LTA) | $SRG_{ij}$, $i,j \in [1,m]$, $i \neq j$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_j \text{ } ) \text{ } )$ | $\geq \frac{1}{m-1}$ |
+| pairwise annihilation | $Anh_{jk}$, $1 \leq i < j \leq m$ | $t_e^{\ast} \text{ } t_x^{\ast} \text{ } x_j^{\ast}( \text{ } x_k( \text{ } + \text{ } t_e^{\ast} \text{ } t_x^{\ast} \text{ } ) \text{ } )$ | $\geq 1$ |
+| signal restoration | $RG_i$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } t_y^{\ast}( \text{ } + \text{ } y_i \text{ } ) \text{ } )$ | $1$ |
 | ↳ | fuel $F_i$, $i \in [1,m]$ | $t_y \text{ } x_i$ | $\geq 1$ |
-| reporting | $Rep_{i}$, $i \in [1,m]$ | $t_x^* \text{ } x_i^*( \text{ } + \text{ } )$ | $\geq 1$ |
+| reporting | $Rep_{i}$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } + \text{ } )$ | $\geq 1$ |
 
 Secondary structures given in [kernel notation](https://github.com/DNA-and-Natural-Algorithms-Group/peppercornenumerator). All species are at most 2-stranded, so their strands can be written in any order[^4].
 We use a "parametric kernel notation" where $x_i$ denotes a given module's input signal branch-migration domain, and likewise $y_j$ for the output signal. Domains $t_x$ and $t_y$ are the signals' respective toeholds. For brevity, the toehold extension $t_e$ is listed only in the annihilators, although it's also necessary in any module that directly precedes pairwise annihilation (summation gates $SG$ for WTA, reversal gates $SRG$ for LTA).
