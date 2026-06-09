@@ -5,7 +5,7 @@ Compile a WTA/LTA classification circuit using translation scheme from [Cherry,Q
 import itertools
 from typing import Generator, Optional, Any, List, Callable
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, auto
 import argparse
 import numpy as np
 import math
@@ -53,6 +53,17 @@ class FormalReaction:
         new_products = [s for s in self.products if not exclude_condition(s)]
         return FormalReaction(new_reactants, new_products)
     
+
+class CRNFilterMode(Enum):
+    """CRN filtering mode for formal verification"""
+    
+    NO_FILTER = auto()
+    """Include all species in formal CRN"""
+    REMOVE_ALL_SUPPORT = auto()
+    """Filter out all supporting species (keep signal only)"""
+    REMOVE_FUELS_ONLY = auto()  
+    """Filter out only species with "fuel" in their name"""
+
 
 @dataclass
 class Reaction:
@@ -167,6 +178,12 @@ class DSDCircuit:
 
 
     def __init__(self, fuel_multiplier: float = 2.0, new_toehold_generation: bool = True):
+        """Initialize an empty circuit.
+        Args:
+            fuel_multiplier: relative excess of all fuels. Value 1 (no excess) suffices for simulation,
+              value 2.0 usually used in seesaw papers.
+            new_toehold_generation: whether to generate new toeholds for each signal
+        """
         if fuel_multiplier < 1:
             raise ValueError("Fuel multiplier must yield excess (relative >= 1x minimum)")
         self.fuel_multiplier = fuel_multiplier
@@ -371,33 +388,45 @@ class DSDCircuit:
         self.update_metadata("migration_sequence_lengths", [sum(dom.length for dom in mod.branch_migration_strand(0)) for mod in modules])
 
 
-    def formal_CRN(self, include_supporting_species: bool, decompose_cycles: bool = False) -> Generator[FormalReaction, None, None]:
+    def formal_CRN(self, decompose_cycles: bool = False) -> Generator[FormalReaction, None, None]:
         for module in self._modules:
-            for fr in module.formal_reactions(decompose_cycles=decompose_cycles):
-                if not include_supporting_species:
-                    fr = fr.excluding(lambda s: s in self._supporting_species)
-                
-                yield fr
+            yield from module.formal_reactions(decompose_cycles=decompose_cycles)
 
 
-    def partial_species_interpretation(self) -> dict[str, List[str]]:
-        """Return a partial interpretation from implementation species to formal species (as needed for bisimulation)."""
+    def partial_species_interpretation(self, filter_mode: CRNFilterMode, interp_formal_support: bool = True) -> dict[str, List[str]]:
+        """Return a partial interpretation from implementation species to formal species (as needed for bisimulation).
+        
+        Args:
+            filter_mode: FuelFilterMode enum value specifying how to filter species are to be filtered from formal CRN
+            interp_formal_support: whether to automatically add trivial interpretations for non-filtered supporting species.
+                FOR TESTING PURPOSES ONLY; should be left to True for sensible results
+        """
         formal2imps: dict[str, List[str]] = {}
 
-        # input mapping
+        # map inputs
         fst_module = self._modules[0]
         for i in range(fst_module.input.dim):
             formal2imps[fst_module.input.formal_name(i)] = [fst_module.input_species_label(i)]
 
-        # outputs of all modules (intermediates and final outputs)
+        # map outputs of all modules (intermediates and final outputs)
         for mod in self._modules:
-            if mod.output is None: continue
+            if mod.output is None and not isinstance(mod, Reporting): continue
+            # edgecase: reporting layer doesn't have an output `Signal`
 
-            for i in range(mod.output.dim):
-                formal2imps[mod.output.formal_name(i)] = [sig_spc.name for sig_spc in mod.all_output_signal_species(i)]
+            for i in range(mod.output.dim if mod.output is not None else mod.input.dim):
+                formal_spc = mod.output.formal_name(i) if mod.output is not None else mod.output_name(i)
+                formal2imps[formal_spc] = [sig_spc.name for sig_spc in mod.all_output_signal_species(i)]
 
+        # map supporting species (if present in formal CRN at all)
+        if interp_formal_support and filter_mode != CRNFilterMode.REMOVE_ALL_SUPPORT:
+            for s in self._supporting_species:
+                if filter_mode == CRNFilterMode.REMOVE_FUELS_ONLY and "fuel" in s.lower():
+                    continue
+                
+                formal2imps[s] = [s]
 
-        # crnverifier.crn_bisimulation_test requires mapping from implementation species to (singleton) lists of formal species
+        # format conversion (crnverifier.crn_bisimulation_test requires mapping from implementation species 
+        # to (singleton) lists of formal species)
         interp = {}
         for formal, imps in formal2imps.items():
             for imp in imps:
@@ -601,7 +630,8 @@ class CircuitModule(ABC):
     @abstractmethod
     def compile(self) -> Generator[tuple[ComplexS, float, bool], None, None]:
         """Yield supporting species (gates, fuels), their initial concentrations, and fuel flags for this module.
-        If fuel flag is True, concentration will be multiplied by circuit.fuel_multiplier."""
+        If fuel flag is True, concentration will be multiplied by circuit.fuel_multiplier.
+        Note that we don't support "infinite fuel" (like Nuskell), so an upper bound on fuel usage must be known in advance."""
         pass
 
     @abstractmethod
@@ -1024,18 +1054,21 @@ class Reporting(CircuitModule):
 
     def gate_name(self, i: int) -> str:
         return f"Reporter_{i}"
+    
+    def output_name(self, i: int) -> str:
+        return f"Fluor_{i}"
 
     def formal_reactions(self, decompose_cycles: bool = False):
         for i in range(self.input.dim):
             yield FormalReaction(
                 reactants=[self.input.formal_name(i), self.gate_name(i)],
-                products=[f"Fluor_{i}"]
+                products=[self.output_name(i)]
             )
 
     def approximate_reactions(self) -> Generator[Reaction, None, None]:
         krep = 1e5 # /M/s
         for i in range(self.input.dim):
-            yield Reaction([self.input.formal_name(i), self.gate_name(i)], [f"Fluor_{i}"], krep)
+            yield Reaction([self.input.formal_name(i), self.gate_name(i)], [self.output_name(i)], krep)
 
 
     def compile(self):

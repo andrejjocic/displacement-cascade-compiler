@@ -1,6 +1,8 @@
 
 notebooks/test.ipynb
 
+artifacts/verification-test/**
+
 # enumerated CRNs
 artifacts/**/*ENUM*.pil
 artifacts/**/*odesys*.py

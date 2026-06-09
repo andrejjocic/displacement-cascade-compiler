@@ -50,8 +50,8 @@ Currently, only the operations described in papers [^1] and [^2] are implemented
 | ↳ restoration fuel | $F_i$, $i \in [1,m]$ | $t_y \text{ } x_i$ | $\geq 1$ |
 | reporting | $Rep_{i}$, $i \in [1,m]$ | $t_x^{\ast} \text{ } x_i^{\ast}( \text{ } + \text{ } )$ | $\geq 1$ |
 
-Secondary structures given in [kernel notation](https://github.com/DNA-and-Natural-Algorithms-Group/peppercornenumerator). All species are at most 2-stranded, so their strands can be written in any order[^4].
-We use a "parametric kernel notation" where $x_i$ denotes a given module's input signal branch-migration domain, and likewise $y_j$ for the output signal. Domains $t_x$ and $t_y$ are the signals' respective toeholds. For brevity, the toehold extension $t_e$ is listed only in the annihilators, although it's also necessary in any module that directly precedes pairwise annihilation (summation gates $SG$ for WTA, reversal gates $SRG$ for LTA).
+Secondary structures are given in [kernel notation](https://github.com/DNA-and-Natural-Algorithms-Group/peppercornenumerator). All species are at most 2-stranded, so their strands can be written in any order[^4].
+We use a "parametric kernel notation" where $x_i$ denotes the $i$-th branch-migration domain of a given module's input signal, and likewise $y_j$ for the output signal. Domains $t_x$ and $t_y$ are the signals' respective toeholds. For brevity, the toehold extension $t_e$ is listed only in the annihilators, although it's also necessary in any module that directly precedes pairwise annihilation (summation gates $SG$ for WTA, reversal gates $SRG$ for LTA).
 
 Feel free to implement new subclasses of `CircuitModule` to add new operations.
 For convenience, you can use the `make_complex` wrapper for constructing a secondary structure from "programmatic kernel notation" instead of the slightly more cumbersome "dot-paren notation" (see implemented examples of `CircuitModule.compile`).

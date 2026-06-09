@@ -258,7 +258,7 @@ def plot_output_signals(pil_path: str, ax: plt.Axes,
         for i, name in enumerate(output_names):
             if name.startswith("Quencher_"):
                 idx = int(name.split("_")[1])
-                species_remap[name] = f"{'Izhod' if slovene_labels else 'Output'} {idx}"
+                species_remap[name] = f"{'Izhod' if slovene_labels else 'Output'} {idx + 1}" # 1-based indexing
                 logger.info(f"Remapping species '{name}' to '{species_remap[name]}' for plotting")
 
         plot_simulation_trajectories(ax, times, trajectories, species_names, output_names, 
@@ -288,10 +288,22 @@ def plot_simulation_trajectories(ax: plt.Axes, time_points: np.ndarray, trajecto
         if species_remap:
             name = species_remap.get(name, name)
 
-        lab = name
+        lines = ax.plot(time_points, rel_trajectories[:, i], label=name, **plot_kwargs)
+        
         if label_final:
-            lab += f" ({'na koncu' if slovene_labels else 'final'}: {rel_trajectories[-1,i]:.2f})"
-        ax.plot(time_points, rel_trajectories[:, i], label=lab, **plot_kwargs)
+            final_val = rel_trajectories[-1, i]
+            final_time = time_points[-1]
+            color = lines[0].get_color()
+            
+            # Annotate value on the right edge outside the plot
+            ax.annotate(f'{final_val:.2f}', 
+                        xy=(final_time, final_val), 
+                        xytext=(20, 0), 
+                        textcoords='offset points', 
+                        va='center', 
+                        color=color,
+                        fontweight='bold',
+                        annotation_clip=False)
 
 
 def trajectory_dataframe(time_points: np.ndarray, trajectories: np.ndarray,
@@ -412,5 +424,5 @@ if __name__ == "__main__":
     if args.save_pdf is None:
         plt.show()
     else:
-        plt.savefig(args.save_pdf, bbox_inches='tight')
+        plt.savefig(args.save_pdf, bbox_inches='tight', dpi=400)
         logger.info(f"Plot saved to {args.save_pdf}")
