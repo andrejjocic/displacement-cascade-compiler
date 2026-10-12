@@ -1,6 +1,7 @@
 # DNA strand displacement cascade compiler
 
 This compiler enables *in silico* evaluation and verification of DNA strand displacement cascades. The pipeline is similar to [Nuskell](https://github.com/DNA-and-Natural-Algorithms-Group/nuskell)[^5], but specialized for [seesaw circuits](https://qianlab.caltech.edu/SeesawCompiler/) extended with cooperative hybridization[^1].
+Implemented as part of [my master's thesis](https://repozitorij.uni-lj.si/IzpisGradiva.php?id=184526&lang=eng) (abridged English translation [here](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/thesis_eng.pdf)).
 
 ## Setup
 
@@ -70,7 +71,7 @@ After enumeration, run `python src/simulate.py` to simulate the circuit with giv
 ### Formal Verification
 
 Alternatively, you can formally verify the correctness of a circuit implementation for *any* input.
-The DSD system resulting from a particular execution of a translation scheme may be formally verified using the notion of bisimulation equivalence[^3]. Some helper functions are provided in [verification_helpers.py](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/src/verification_helpers.py).
+The DSD system resulting from a particular execution of a translation scheme may be formally verified using any of the methods from [crnverifier](https://github.com/DNA-and-Natural-Algorithms-Group/crnverifier) except pathway decomposition equivalence. Some helper functions are provided in [verification_helpers.py](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/src/verification_helpers.py).
 See [notebook](https://github.com/andrejjocic/displacement-cascade-compiler/blob/main/notebooks/formal_verification.ipynb) for examples of usage.
 
 
@@ -79,8 +80,6 @@ See [notebook](https://github.com/andrejjocic/displacement-cascade-compiler/blob
 [^1]: [Scaling up molecular pattern recognition with DNA-based winner-take-all neural networks](https://www.nature.com/articles/s41586-018-0289-6) (Cherry and Qian, 2018)
 
 [^2]: [A Loser-Take-All DNA Circuit](https://pubs.acs.org/doi/10.1021/acssynbio.1c00318) (Rodriguez *et al.*, 2021)
-
-[^3]: [Verifying chemical reaction network implementations: A bisimulation approach](https://www.sciencedirect.com/science/article/pii/S0304397518300136) (Johnson *et al.*, 2019)
 
 [^4]: [A domain-level DNA strand displacement reaction enumerator allowing arbitrary non-pseudoknotted secondary structures](https://royalsocietypublishing.org/rsif/article/17/167/20190866/36183/A-domain-level-DNA-strand-displacement-reaction) (Badelt *et al.*, 2020)
 
